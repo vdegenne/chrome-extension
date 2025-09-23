@@ -7,11 +7,12 @@
 	"module": "",
 	"exports": {
 		".": {
-			"types": "./types.d.ts"
+			"import": "./lib/index.js",
+			"types": "./lib/index.d.ts"
 		},
-		"./messaging.js": {
-			"import": "./lib/events/messaging.js",
-			"types": "./lib/events/messaging.d.ts"
+		"./events/*": {
+			"import": "./lib/events/*.js",
+			"types": "./lib/events/*.d.ts"
 		},
 		"./offscreen.js": {
 			"import": "./lib/offscreen.js",
@@ -27,6 +28,7 @@
 	},
 	"files": [],
 	"devDependencies": {
+		"@types/chrome": "^0.1.12",
 		"typescript": "^5.9.2",
 		"wireit": "^0.14.12"
 	},
@@ -42,8 +44,5 @@
 				"./lib"
 			]
 		}
-	},
-	"dependencies": {
-		"@types/chrome": "^0.1.12"
 	}
 }
