@@ -1,0 +1,49 @@
+{
+	"name": "@vdegenne/chrome-extension",
+	"version": "0.1.0",
+	"description": "",
+	"type": "module",
+	"main": "",
+	"module": "",
+	"exports": {
+		".": {
+			"types": "./types.d.ts"
+		},
+		"./messaging.js": {
+			"import": "./lib/events/messaging.js",
+			"types": "./lib/events/messaging.d.ts"
+		},
+		"./offscreen.js": {
+			"import": "./lib/offscreen.js",
+			"types": "./lib/offscreen.d.ts"
+		},
+		"./storage.js": {
+			"import": "./lib/storage.js",
+			"types": "./lib/storage.d.ts"
+		}
+	},
+	"scripts": {
+		"build": "wireit"
+	},
+	"files": [],
+	"devDependencies": {
+		"typescript": "^5.9.2",
+		"wireit": "^0.14.12"
+	},
+	"wireit": {
+		"build": {
+			"command": "tsc --pretty",
+			"clean": "if-file-deleted",
+			"files": [
+				"./tsconfig.json",
+				"./src"
+			],
+			"output": [
+				"./lib"
+			]
+		}
+	},
+	"dependencies": {
+		"@types/chrome": "^0.1.12"
+	}
+}
