@@ -1,3 +1,6 @@
+/**
+ * You need "offscreen" permission to use this tool.
+ */
 export async function ensureOffscreenDocument() {
 	// Check if offscreen document already exists
 	const url = chrome.runtime.getURL('offscreen.html')

@@ -21,6 +21,22 @@
 		"./storage.js": {
 			"import": "./lib/storage.js",
 			"types": "./lib/storage.d.ts"
+		},
+		"./alarm.js": {
+			"import": "./lib/alarm.js",
+			"types": "./lib/alarm.d.ts"
+		},
+		"./misc.js": {
+			"import": "./lib/misc.js",
+			"types": "./lib/misc.d.ts"
+		},
+		"./debug.js": {
+			"import": "./lib/debug.js",
+			"types": "./lib/debug.d.ts"
+		},
+		"./notifications.js": {
+			"import": "./lib/notifications.js",
+			"types": "./lib/notifications.d.ts"
 		}
 	},
 	"scripts": {
