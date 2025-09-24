@@ -17,6 +17,15 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 	}
 })
 
+interface AlarmOptions {
+	/** @default 10 */
+	periodInMinutes: number
+	/** @default false */
+	force: boolean
+	/** @default false */
+	firesImmediately: boolean
+}
+
 /**
  * You need "alarms" permission to use this tool.
  *
@@ -26,14 +35,20 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
  */
 export async function createAlarm(
 	name: string,
-	periodInMinutes: number,
 	callback: () => Promise<void> | void,
-	force = false,
+	options?: Partial<AlarmOptions>,
 ) {
+	const _options: AlarmOptions = {
+		force: false,
+		periodInMinutes: 10,
+		firesImmediately: false,
+		...options,
+	}
+
 	if ((await chrome.alarms.get(name)) !== undefined) {
-		if (!force) {
+		if (!_options.force) {
 			if (DEBUG()) {
-				console.error(
+				console.warn(
 					`Trying to create alarm "${name}" again failed. Set "force" to true to create it again. (${getDate()})`,
 				)
 				return
@@ -46,10 +61,14 @@ export async function createAlarm(
 	// Store the callback
 	alarmCallbacks[name] = callback
 
-	chrome.alarms.create(name, {periodInMinutes})
+	chrome.alarms.create(name, {periodInMinutes: _options.periodInMinutes})
 
 	if (DEBUG()) {
 		console.log(`Created alarm "${name}" successfully (${getDate()})`)
 		console.log(await chrome.alarms.get(name))
+	}
+
+	if (_options.firesImmediately) {
+		callback()
 	}
 }
