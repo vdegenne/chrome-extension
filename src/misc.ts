@@ -9,3 +9,10 @@ export function updateBadge(count: number, color = 'black') {
 		chrome.action.setBadgeText({text: ''}) // clear badge
 	}
 }
+
+/**
+ * The path should be relative to root, e.g. "assets/img/icon.png"
+ */
+export function getURL(path: string) {
+	return chrome.runtime.getURL(path)
+}

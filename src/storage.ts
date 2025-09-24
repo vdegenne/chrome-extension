@@ -1,15 +1,23 @@
 // ==================== Helpers ====================
-export function getLocalData<T extends Record<string, any>>(
-	keys?: keyof T | (keyof T)[],
-): Promise<T[keyof T] | Partial<T> | null> {
+export function getLocalData<
+	T extends Record<string, any>,
+	K extends readonly (keyof T)[] = [],
+>(
+	...keys: K
+): Promise<
+	K['length'] extends 0
+		? {[P in keyof T]: T[P] | null}
+		: {[P in K[number]]: T[P] | null}
+> {
 	return new Promise((resolve) => {
-		chrome.storage.local.get(keys as string | string[] | null, (result) => {
-			if (!keys) {
-				resolve(result as Partial<T>)
-			} else if (Array.isArray(keys)) {
-				resolve(result as Partial<T>)
+		const query = keys.length ? (keys as unknown as string[]) : null
+		chrome.storage.local.get(query, (result) => {
+			if (!keys.length) {
+				resolve(result as {[P in keyof T]: T[P] | null})
 			} else {
-				resolve((result[keys as string] as T[keyof T]) ?? null)
+				const mapped: any = {}
+				keys.forEach((k) => (mapped[k] = result[k as string] ?? null))
+				resolve(mapped)
 			}
 		})
 	})
@@ -23,17 +31,25 @@ export function saveLocalData<T extends Record<string, any>>(
 	})
 }
 
-export function getSyncData<T extends Record<string, any>>(
-	keys?: keyof T | (keyof T)[],
-): Promise<T[keyof T] | Partial<T> | null> {
+export function getSyncData<
+	T extends Record<string, any>,
+	K extends readonly (keyof T)[] = [],
+>(
+	...keys: K
+): Promise<
+	K['length'] extends 0
+		? {[P in keyof T]: T[P] | null}
+		: {[P in K[number]]: T[P] | null}
+> {
 	return new Promise((resolve) => {
-		chrome.storage.sync.get(keys as string | string[] | null, (result) => {
-			if (!keys) {
-				resolve(result as Partial<T>)
-			} else if (Array.isArray(keys)) {
-				resolve(result as Partial<T>)
+		const query = keys.length ? (keys as unknown as string[]) : null
+		chrome.storage.sync.get(query, (result) => {
+			if (!keys.length) {
+				resolve(result as {[P in keyof T]: T[P] | null})
 			} else {
-				resolve((result[keys as string] as T[keyof T]) ?? null)
+				const mapped: any = {}
+				keys.forEach((k) => (mapped[k] = result[k as string] ?? null))
+				resolve(mapped)
 			}
 		})
 	})
@@ -49,31 +65,34 @@ export function saveSyncData<T extends Record<string, any>>(
 
 // ==================== Classes ====================
 abstract class BaseStorage<T extends Record<string, any>> {
-	abstract get<K extends keyof T>(
-		key?: K | K[],
-	): Promise<T[K] | Partial<T> | null>
+	abstract get<K extends readonly (keyof T)[]>(
+		...keys: K
+	): Promise<
+		K['length'] extends 0
+			? {[P in keyof T]: T[P] | null}
+			: {[P in K[number]]: T[P] | null}
+	>
+
 	abstract set(data: Partial<T>): Promise<void>
 }
-
 /**
  * You need "storage" permission to use this tool.
  */
 export class LocalStorage<
 	T extends Record<string, any>,
 > extends BaseStorage<T> {
-	// Overload: get all
-	async get(): Promise<T>
-	// Overload: get single key
-	async get<K extends keyof T>(key: K): Promise<T[K] | null>
-	// Overload: get multiple keys
-	async get<K extends keyof T>(keys: K[]): Promise<Pick<T, K>>
-	// Implementation
-	async get<K extends keyof T>(keyOrKeys?: K | K[]): Promise<any> {
-		if (keyOrKeys === undefined) {
+	async get<K extends readonly (keyof T)[]>(
+		...keys: K
+	): Promise<
+		K['length'] extends 0
+			? {[P in keyof T]: T[P] | null}
+			: {[P in K[number]]: T[P] | null}
+	> {
+		if (keys.length === 0) {
 			const result = await getLocalData<T>()
-			return result ?? ({} as T)
+			return result
 		}
-		return getLocalData<T>(keyOrKeys as K | K[])
+		return getLocalData<T, K>(...keys)
 	}
 
 	async set(data: Partial<T>): Promise<void> {
@@ -81,23 +100,19 @@ export class LocalStorage<
 	}
 }
 
-/**
- * You need "storage" permission to use this tool.
- */
 export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
-	// Overload: get all
-	async get(): Promise<T>
-	// Overload: get single key
-	async get<K extends keyof T>(key: K): Promise<T[K] | null>
-	// Overload: get multiple keys
-	async get<K extends keyof T>(keys: K[]): Promise<Pick<T, K>>
-	// Implementation
-	async get<K extends keyof T>(keyOrKeys?: K | K[]): Promise<any> {
-		if (keyOrKeys === undefined) {
+	async get<K extends readonly (keyof T)[]>(
+		...keys: K
+	): Promise<
+		K['length'] extends 0
+			? {[P in keyof T]: T[P] | null}
+			: {[P in K[number]]: T[P] | null}
+	> {
+		if (keys.length === 0) {
 			const result = await getSyncData<T>()
-			return result ?? ({} as T)
+			return result
 		}
-		return getSyncData<T>(keyOrKeys as K | K[])
+		return getSyncData<T, K>(...keys)
 	}
 
 	async set(data: Partial<T>): Promise<void> {
