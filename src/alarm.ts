@@ -7,6 +7,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 	const cb = alarmCallbacks[alarm.name]
 	if (cb) {
 		try {
+			if (DEBUG()) {
+				console.log(`Alarm "${alarm.name}" called.`)
+			}
 			await cb()
 		} catch (err) {
 			console.error(`Alarm "${alarm.name}" callback failed:`, err)
