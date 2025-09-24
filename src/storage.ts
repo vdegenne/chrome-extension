@@ -1,23 +1,27 @@
 // ==================== Helpers ====================
+export function getLocalData<T extends Record<string, any>>(
+	key: keyof T,
+): Promise<T[typeof key]>
 export function getLocalData<
 	T extends Record<string, any>,
-	K extends readonly (keyof T)[] = [],
->(
-	...keys: K
-): Promise<
-	K['length'] extends 0
-		? {[P in keyof T]: T[P] | null}
-		: {[P in K[number]]: T[P] | null}
-> {
+	K extends readonly (keyof T)[],
+>(...keys: K): Promise<{[P in K[number]]: T[P]}>
+export function getLocalData<
+	T extends Record<string, any>,
+	K extends readonly (keyof T)[],
+>(...keys: K | [keyof T]): Promise<any> {
 	return new Promise((resolve) => {
-		const query = keys.length ? (keys as unknown as string[]) : null
+		const query =
+			keys.length === 1 && typeof keys[0] === 'string'
+				? (keys[0] as string)
+				: keys.length
+					? (keys as unknown as string[])
+					: null
 		chrome.storage.local.get(query, (result) => {
-			if (!keys.length) {
-				resolve(result as {[P in keyof T]: T[P] | null})
+			if (keys.length === 1 && typeof keys[0] === 'string') {
+				resolve(result[keys[0] as string])
 			} else {
-				const mapped: any = {}
-				keys.forEach((k) => (mapped[k] = result[k as string] ?? null))
-				resolve(mapped)
+				resolve(result)
 			}
 		})
 	})
@@ -31,25 +35,29 @@ export function saveLocalData<T extends Record<string, any>>(
 	})
 }
 
+export function getSyncData<T extends Record<string, any>>(
+	key: keyof T,
+): Promise<T[typeof key]>
 export function getSyncData<
 	T extends Record<string, any>,
-	K extends readonly (keyof T)[] = [],
->(
-	...keys: K
-): Promise<
-	K['length'] extends 0
-		? {[P in keyof T]: T[P] | null}
-		: {[P in K[number]]: T[P] | null}
-> {
+	K extends readonly (keyof T)[],
+>(...keys: K): Promise<{[P in K[number]]: T[P]}>
+export function getSyncData<
+	T extends Record<string, any>,
+	K extends readonly (keyof T)[],
+>(...keys: K | [keyof T]): Promise<any> {
 	return new Promise((resolve) => {
-		const query = keys.length ? (keys as unknown as string[]) : null
+		const query =
+			keys.length === 1 && typeof keys[0] === 'string'
+				? (keys[0] as string)
+				: keys.length
+					? (keys as unknown as string[])
+					: null
 		chrome.storage.sync.get(query, (result) => {
-			if (!keys.length) {
-				resolve(result as {[P in keyof T]: T[P] | null})
+			if (keys.length === 1 && typeof keys[0] === 'string') {
+				resolve(result[keys[0] as string])
 			} else {
-				const mapped: any = {}
-				keys.forEach((k) => (mapped[k] = result[k as string] ?? null))
-				resolve(mapped)
+				resolve(result)
 			}
 		})
 	})
@@ -64,35 +72,27 @@ export function saveSyncData<T extends Record<string, any>>(
 }
 
 // ==================== Classes ====================
+// ==================== Classes ====================
 abstract class BaseStorage<T extends Record<string, any>> {
+	abstract get<K extends keyof T>(key: K): Promise<T[K] | undefined>
 	abstract get<K extends readonly (keyof T)[]>(
 		...keys: K
-	): Promise<
-		K['length'] extends 0
-			? {[P in keyof T]: T[P] | null}
-			: {[P in K[number]]: T[P] | null}
-	>
-
+	): Promise<{[P in K[number]]?: T[P]}>
 	abstract set(data: Partial<T>): Promise<void>
 }
-/**
- * You need "storage" permission to use this tool.
- */
+
 export class LocalStorage<
 	T extends Record<string, any>,
 > extends BaseStorage<T> {
+	// overloads
+	async get<K extends keyof T>(key: K): Promise<T[K] | undefined>
 	async get<K extends readonly (keyof T)[]>(
 		...keys: K
-	): Promise<
-		K['length'] extends 0
-			? {[P in keyof T]: T[P] | null}
-			: {[P in K[number]]: T[P] | null}
-	> {
-		if (keys.length === 0) {
-			const result = await getLocalData<T>()
-			return result
-		}
-		return getLocalData<T, K>(...keys)
+	): Promise<{[P in K[number]]?: T[P]}>
+	// implementation
+	async get(...keys: (keyof T)[]): Promise<any> {
+		if (keys.length === 1) return getLocalData<T>(keys[0])
+		return getLocalData<T, typeof keys>(...keys)
 	}
 
 	async set(data: Partial<T>): Promise<void> {
@@ -101,18 +101,15 @@ export class LocalStorage<
 }
 
 export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
+	// overloads
+	async get<K extends keyof T>(key: K): Promise<T[K] | undefined>
 	async get<K extends readonly (keyof T)[]>(
 		...keys: K
-	): Promise<
-		K['length'] extends 0
-			? {[P in keyof T]: T[P] | null}
-			: {[P in K[number]]: T[P] | null}
-	> {
-		if (keys.length === 0) {
-			const result = await getSyncData<T>()
-			return result
-		}
-		return getSyncData<T, K>(...keys)
+	): Promise<{[P in K[number]]?: T[P]}>
+	// implementation
+	async get(...keys: (keyof T)[]): Promise<any> {
+		if (keys.length === 1) return getSyncData<T>(keys[0])
+		return getSyncData<T, typeof keys>(...keys)
 	}
 
 	async set(data: Partial<T>): Promise<void> {
