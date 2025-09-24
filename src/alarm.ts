@@ -1,4 +1,4 @@
-import {DEBUG} from './debug.js'
+import {DEBUG, getDate} from './debug.js'
 
 const alarmCallbacks: Record<string, () => Promise<void> | void> = {}
 
@@ -8,7 +8,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 	if (cb) {
 		try {
 			if (DEBUG()) {
-				console.log(`Alarm "${alarm.name}" called.`)
+				console.log(`Alarm "${alarm.name}" called (${getDate()}).`)
 			}
 			await cb()
 		} catch (err) {
@@ -34,7 +34,7 @@ export async function createAlarm(
 		if (!force) {
 			if (DEBUG()) {
 				console.error(
-					`Trying to create alarm "${name}" again failed. Set "force" to true to create it again.`,
+					`Trying to create alarm "${name}" again failed. Set "force" to true to create it again. (${getDate()})`,
 				)
 				return
 			}
@@ -49,7 +49,7 @@ export async function createAlarm(
 	chrome.alarms.create(name, {periodInMinutes})
 
 	if (DEBUG()) {
-		console.log(`Created alarm "${name}" successfully`)
+		console.log(`Created alarm "${name}" successfully (${getDate()})`)
 		console.log(await chrome.alarms.get(name))
 	}
 }

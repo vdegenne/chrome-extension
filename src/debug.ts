@@ -6,3 +6,7 @@ export function DEBUG(debug?: boolean) {
 	}
 	return _DEBUG
 }
+
+export function getDate() {
+	return new Date().toLocaleString()
+}
