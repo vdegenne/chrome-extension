@@ -4,6 +4,9 @@ const alarmCallbacks: Record<string, () => Promise<void> | void> = {}
 
 // Single listener for all alarms
 chrome.alarms.onAlarm.addListener(async (alarm) => {
+	console.log(
+		`"onAlarm" event called (alarm name: ${alarm.name}) (${getDate()})`,
+	)
 	const cb = alarmCallbacks[alarm.name]
 	if (cb) {
 		try {
@@ -20,10 +23,19 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 interface AlarmOptions {
 	/** @default 10 */
 	periodInMinutes: number
-	/** @default false */
-	force: boolean
-	/** @default false */
-	firesImmediately: boolean
+	/**
+	 * Reset the timer if the alarm already exists.
+	 *
+	 * @default false
+	 */
+	resetAlarm: boolean
+	/**
+	 * If you create alarm that already exists, the callback will be replaced by default.
+	 * This ensures the callback is always registered when the background worker wakes up again.
+	 *
+	 * @default true
+	 */
+	replaceCallback: boolean
 }
 
 /**
@@ -39,36 +51,31 @@ export async function createAlarm(
 	options?: Partial<AlarmOptions>,
 ) {
 	const _options: AlarmOptions = {
-		force: false,
+		resetAlarm: false,
 		periodInMinutes: 10,
-		firesImmediately: false,
+		replaceCallback: true,
 		...options,
 	}
 
 	if ((await chrome.alarms.get(name)) !== undefined) {
-		if (!_options.force) {
-			if (DEBUG()) {
-				console.warn(
-					`Trying to create alarm "${name}" again failed. Set "force" to true to create it again. (${getDate()})`,
-				)
-				return
-			}
+		if (!_options.resetAlarm && DEBUG()) {
+			console.warn(
+				`Alarm "${name}" already exists. Set "reset" if you want to reset the timer. (${getDate()})`,
+			)
 		} else {
-			await chrome.alarms.clear(name)
+			chrome.alarms.create(name, {periodInMinutes: _options.periodInMinutes})
+			console.log(`Alarm "${name}" reset (${getDate()})`)
+		}
+	} else {
+		chrome.alarms.create(name, {periodInMinutes: _options.periodInMinutes})
+		if (DEBUG()) {
+			console.log(`Created alarm "${name}" successfully (${getDate()})`)
+			console.log(await chrome.alarms.get(name))
 		}
 	}
 
 	// Store the callback
-	alarmCallbacks[name] = callback
-
-	chrome.alarms.create(name, {periodInMinutes: _options.periodInMinutes})
-
-	if (DEBUG()) {
-		console.log(`Created alarm "${name}" successfully (${getDate()})`)
-		console.log(await chrome.alarms.get(name))
-	}
-
-	if (_options.firesImmediately) {
-		callback()
+	if (!alarmCallbacks[name] || _options.replaceCallback) {
+		alarmCallbacks[name] = callback
 	}
 }
