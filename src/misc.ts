@@ -16,3 +16,13 @@ export function updateBadge(count: number, color = 'black') {
 export function getURL(path: string) {
 	return chrome.runtime.getURL(path)
 }
+
+/**
+ * This function works without "tabs" permission.
+ * But "tabs" permission can help getting more information about a specific tab.
+ */
+export async function getCurrentTab() {
+	const tabs = await chrome.tabs.query({active: true, currentWindow: true})
+	if (!tabs || tabs.length === 0) return null
+	return tabs[0]
+}

@@ -1,6 +1,6 @@
 {
 	"name": "@vdegenne/chrome-extension",
-	"version": "0.1.8",
+	"version": "0.1.9",
 	"description": "",
 	"type": "module",
 	"exports": {
@@ -8,7 +8,7 @@
 			"import": "./lib/index.js",
 			"types": "./lib/index.d.ts"
 		},
-		"./events/*": {
+		"./events/*.js": {
 			"import": "./lib/events/*.js",
 			"types": "./lib/events/*.d.ts"
 		},
@@ -35,6 +35,10 @@
 		"./notifications.js": {
 			"import": "./lib/notifications.js",
 			"types": "./lib/notifications.d.ts"
+		},
+		"./sidepanel.js": {
+			"import": "./lib/sidepanel.js",
+			"types": "./lib/sidepanel.d.ts"
 		}
 	},
 	"scripts": {

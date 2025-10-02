@@ -3,22 +3,24 @@ import {DEBUG, getDate} from './debug.js'
 const alarmCallbacks: Record<string, () => Promise<void> | void> = {}
 
 // Single listener for all alarms
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-	console.log(
-		`"onAlarm" event called (alarm name: ${alarm.name}) (${getDate()})`,
-	)
-	const cb = alarmCallbacks[alarm.name]
-	if (cb) {
-		try {
-			if (DEBUG()) {
-				console.log(`Alarm "${alarm.name}" called (${getDate()}).`)
+try {
+	chrome.alarms.onAlarm.addListener(async (alarm) => {
+		console.log(
+			`"onAlarm" event called (alarm name: ${alarm.name}) (${getDate()})`,
+		)
+		const cb = alarmCallbacks[alarm.name]
+		if (cb) {
+			try {
+				if (DEBUG()) {
+					console.log(`Alarm "${alarm.name}" called (${getDate()}).`)
+				}
+				await cb()
+			} catch (err) {
+				console.error(`Alarm "${alarm.name}" callback failed:`, err)
 			}
-			await cb()
-		} catch (err) {
-			console.error(`Alarm "${alarm.name}" callback failed:`, err)
 		}
-	}
-})
+	})
+} catch {}
 
 interface AlarmOptions {
 	/** @default 10 */
