@@ -26,3 +26,7 @@ export async function getCurrentTab() {
 	if (!tabs || tabs.length === 0) return null
 	return tabs[0]
 }
+
+export function openOptionsPage() {
+	return chrome.runtime.openOptionsPage()
+}

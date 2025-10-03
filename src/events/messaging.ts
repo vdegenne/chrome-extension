@@ -47,6 +47,47 @@ export class ActionMessenger<T = any, R = any> {
 	}
 
 	/**
+	 * This is different from broadcast().
+	 * broadcast() will send a message to all runtimes scripts (background, options, popup, ...).
+	 * This is just a broadcast for all tabs.
+	 * You'll have to use a content script to intercept the message.
+	 *
+	 * Also, consider `chrome.storage.onChanged.addListener` as an alternate.
+	 */
+	async sendToAllTabs(payload?: T): Promise<R[]> {
+		const responses: R[] = []
+
+		return new Promise((resolve, reject) => {
+			chrome.tabs.query({}, (tabs) => {
+				if (!tabs || tabs.length === 0) return resolve(responses)
+
+				let pending = tabs.length
+
+				tabs.forEach((tab) => {
+					if (tab.id === undefined) {
+						pending--
+						if (pending === 0) resolve(responses)
+						return
+					}
+
+					chrome.tabs.sendMessage(
+						tab.id,
+						{action: this.action, data: payload},
+						(response) => {
+							const err = chrome.runtime.lastError
+							if (!err && response !== undefined) responses.push(response as R)
+							// else you can log or ignore errors per tab
+
+							pending--
+							if (pending === 0) resolve(responses)
+						},
+					)
+				})
+			})
+		})
+	}
+
+	/**
 	 * Send a message to the current tab.
 	 *
 	 * You don't need "tabs" permission to use this.

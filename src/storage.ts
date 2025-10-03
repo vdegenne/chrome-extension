@@ -81,6 +81,8 @@ abstract class BaseStorage<T extends Record<string, any>> {
 		...keys: K
 	): Promise<{[P in K[number]]: T[P]}>
 	abstract set(data: Partial<T>): Promise<void>
+
+	abstract onChange(callback: (changes: Partial<T>) => void): void
 }
 
 export class LocalStorage<
@@ -104,6 +106,21 @@ export class LocalStorage<
 	async set(data: Partial<T>): Promise<void> {
 		return saveLocalData<T>(data)
 	}
+
+	onChange(callback: (changes: Partial<T>) => void) {
+		chrome.storage.onChanged.addListener((changes, areaName) => {
+			if (areaName !== 'local') return
+
+			const relevant: Partial<T> = {}
+			for (const key in changes) {
+				relevant[key as keyof T] = changes[key].newValue
+			}
+
+			if (Object.keys(relevant).length > 0) {
+				callback(relevant)
+			}
+		})
+	}
 }
 
 export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
@@ -124,5 +141,20 @@ export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
 
 	async set(data: Partial<T>): Promise<void> {
 		return saveSyncData<T>(data)
+	}
+
+	onChange(callback: (changes: Partial<T>) => void) {
+		chrome.storage.onChanged.addListener((changes, areaName) => {
+			if (areaName !== 'sync') return
+
+			const relevant: Partial<T> = {}
+			for (const key in changes) {
+				relevant[key as keyof T] = changes[key].newValue
+			}
+
+			if (Object.keys(relevant).length > 0) {
+				callback(relevant)
+			}
+		})
 	}
 }

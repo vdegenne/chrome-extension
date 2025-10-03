@@ -1,10 +1,16 @@
 let _DEBUG = false
 
-export function DEBUG(debug?: boolean) {
-	if (debug !== undefined) {
-		_DEBUG = debug
+export function DEBUG(debug?: boolean | string) {
+	if (debug === undefined) {
+		return _DEBUG
 	}
-	return _DEBUG
+	if (typeof debug === 'boolean') {
+		_DEBUG = debug
+	} else if (typeof debug === 'string') {
+		if (_DEBUG) {
+			console.log(debug)
+		}
+	}
 }
 
 export function getDate() {
