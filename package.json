@@ -1,6 +1,6 @@
 {
 	"name": "@vdegenne/chrome-extension",
-	"version": "0.1.10",
+	"version": "0.1.11",
 	"description": "",
 	"type": "module",
 	"exports": {
@@ -15,6 +15,10 @@
 		"./offscreen.js": {
 			"import": "./lib/offscreen.js",
 			"types": "./lib/offscreen.d.ts"
+		},
+		"./OffScreenManager.js": {
+			"import": "./lib/OffscreenManager.js",
+			"types": "./lib/OffscreenManager.d.ts"
 		},
 		"./storage.js": {
 			"import": "./lib/storage.js",
@@ -39,6 +43,10 @@
 		"./sidepanel.js": {
 			"import": "./lib/sidepanel.js",
 			"types": "./lib/sidepanel.d.ts"
+		},
+		"./identity.js": {
+			"import": "./lib/identity.js",
+			"types": "./lib/identity.d.ts"
 		}
 	},
 	"scripts": {

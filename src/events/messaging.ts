@@ -1,8 +1,10 @@
 import {getCurrentTab} from '../misc.js'
 
-type MessageHandler<T = any, R = any> = (payload: T) => Promise<R> | R
+type MessageHandler<PayloadType = any, R = any> = (
+	payload: PayloadType,
+) => Promise<R> | R
 
-export class ActionMessenger<T = any, R = any> {
+export class ActionMessenger<PayloadType = any, ResponseType = any> {
 	constructor(private action: string) {}
 
 	/**
@@ -10,7 +12,7 @@ export class ActionMessenger<T = any, R = any> {
 	 *
 	 * Content script can't intercept this one directly.
 	 */
-	broadcast(payload?: T): Promise<R> {
+	broadcast(payload?: PayloadType): Promise<ResponseType> {
 		return new Promise((resolve, reject) => {
 			chrome.runtime.sendMessage(
 				{action: this.action, data: payload},
@@ -19,7 +21,7 @@ export class ActionMessenger<T = any, R = any> {
 					if (err) {
 						console.error(`Error while broadcasting "${this.action}"`)
 						reject(err)
-					} else resolve(response as R)
+					} else resolve(response as ResponseType)
 				},
 			)
 		})
@@ -30,7 +32,7 @@ export class ActionMessenger<T = any, R = any> {
 	 *
 	 * You don't need "tabs" permission to use this.
 	 */
-	async sendToTab(tabId: number, payload?: T): Promise<R> {
+	async sendToTab(tabId: number, payload?: PayloadType): Promise<ResponseType> {
 		return new Promise((resolve, reject) => {
 			chrome.tabs.sendMessage(
 				tabId,
@@ -40,7 +42,7 @@ export class ActionMessenger<T = any, R = any> {
 					if (err) {
 						console.error(`Error while sending to tab "${this.action}"`)
 						reject(err)
-					} else resolve(response as R)
+					} else resolve(response as ResponseType)
 				},
 			)
 		})
@@ -54,8 +56,8 @@ export class ActionMessenger<T = any, R = any> {
 	 *
 	 * Also, consider `chrome.storage.onChanged.addListener` as an alternate.
 	 */
-	async sendToAllTabs(payload?: T): Promise<R[]> {
-		const responses: R[] = []
+	async sendToAllTabs(payload?: PayloadType): Promise<ResponseType[]> {
+		const responses: ResponseType[] = []
 
 		return new Promise((resolve, reject) => {
 			chrome.tabs.query({}, (tabs) => {
@@ -75,7 +77,8 @@ export class ActionMessenger<T = any, R = any> {
 						{action: this.action, data: payload},
 						(response) => {
 							const err = chrome.runtime.lastError
-							if (!err && response !== undefined) responses.push(response as R)
+							if (!err && response !== undefined)
+								responses.push(response as ResponseType)
 							// else you can log or ignore errors per tab
 
 							pending--
@@ -92,7 +95,9 @@ export class ActionMessenger<T = any, R = any> {
 	 *
 	 * You don't need "tabs" permission to use this.
 	 */
-	async sendToCurrentTab(payload?: T): Promise<R | undefined> {
+	async sendToCurrentTab(
+		payload?: PayloadType,
+	): Promise<ResponseType | undefined> {
 		const tab = await getCurrentTab()
 		if (tab?.id !== undefined) {
 			return this.sendToTab(tab.id, payload)
@@ -104,12 +109,12 @@ export class ActionMessenger<T = any, R = any> {
 	/**
 	 * Register a handler for this action
 	 */
-	catch(handler: MessageHandler<T, R>) {
+	catch(handler: MessageHandler<PayloadType, ResponseType>) {
 		chrome.runtime.onMessage.addListener(
 			(msg: {action: string; data?: any}, sender, sendResponse) => {
 				if (msg.action === this.action) {
 					try {
-						const result = handler(msg.data as T)
+						const result = handler(msg.data as PayloadType)
 						if (result instanceof Promise) {
 							result.then(sendResponse).catch(console.error)
 							return true // indicates async response

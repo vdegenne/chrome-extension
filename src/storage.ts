@@ -85,6 +85,11 @@ abstract class BaseStorage<T extends Record<string, any>> {
 	abstract onChange(callback: (changes: Partial<T>) => void): void
 }
 
+/**
+ * You'll need "storage" permission to use this.
+ *
+ * Keep in mind chrome.storage is not available in offscreen documents.
+ */
 export class LocalStorage<
 	T extends Record<string, any>,
 > extends BaseStorage<T> {
@@ -123,6 +128,11 @@ export class LocalStorage<
 	}
 }
 
+/**
+ * You'll need "storage" permission to use this.
+ *
+ * Keep in mind chrome.storage is not available in offscreen documents.
+ */
 export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
 	async get(): Promise<T>
 	async get<K extends keyof T>(key: K): Promise<T[K]>
