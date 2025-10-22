@@ -10,9 +10,7 @@ export function addOnActionClickedListener(
 	callback: (tab: chrome.tabs.Tab) => void,
 ) {
 	chrome.action.onClicked.addListener((tab) => {
-		if (DEBUG()) {
-			console.log('action.onClicked event called.')
-		}
+		DEBUG('action.onClicked event called')
 		callback(tab)
 	})
 }

@@ -8,9 +8,7 @@ export function addOnInstalledListener(
 	callback: (details: chrome.runtime.InstalledDetails) => void,
 ) {
 	chrome.runtime.onInstalled.addListener((details) => {
-		if (DEBUG()) {
-			console.log('onInstalled event called.')
-		}
+		DEBUG('onInstalled event called.')
 		callback(details)
 	})
 }

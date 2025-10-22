@@ -1,11 +1,32 @@
 import {getCurrentTab} from '../misc.js'
+import {addOnCommandListener} from './onCommand.js'
 
 type MessageHandler<PayloadType = any, R = any> = (
 	payload: PayloadType,
 ) => Promise<R> | R
 
+interface MessengerOptions {
+	/**
+	 * Optional command name that will automatically broadcast the message
+	 * when activated
+	 *
+	 * @default undefined
+	 */
+	commandName: string | undefined
+}
+
 export class ActionMessenger<PayloadType = any, ResponseType = any> {
-	constructor(private action: string) {}
+	#options: MessengerOptions
+	constructor(
+		private action: string,
+		options?: Partial<MessengerOptions>,
+	) {
+		this.#options = {commandName: undefined, ...options}
+
+		if (this.#options.commandName) {
+			addOnCommandListener(this.#options.commandName, () => this.broadcast())
+		}
+	}
 
 	/**
 	 * Send a message to the extension runtime (background / popup / options / sidepanel / etc...)
