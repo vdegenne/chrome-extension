@@ -24,7 +24,11 @@ export class ActionMessenger<PayloadType = any, ResponseType = any> {
 		this.#options = {commandName: undefined, ...options}
 
 		if (this.#options.commandName) {
-			addOnCommandListener(this.#options.commandName, () => this.broadcast())
+			const name =
+				this.#options.commandName === '<same>'
+					? action
+					: this.#options.commandName
+			addOnCommandListener(name, () => this.broadcast())
 		}
 	}
 
