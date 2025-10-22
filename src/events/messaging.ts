@@ -8,11 +8,12 @@ type MessageHandler<PayloadType = any, R = any> = (
 interface MessengerOptions {
 	/**
 	 * Optional command name that will automatically broadcast the message
-	 * when activated
+	 * when activated.
+	 * Will fail if the catch is in a background script (can't catch a message sent in the same context.)
 	 *
 	 * @default undefined
 	 */
-	commandName: string | undefined
+	commandName: '<same>' | string | undefined
 }
 
 export class ActionMessenger<PayloadType = any, ResponseType = any> {
