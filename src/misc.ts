@@ -2,9 +2,9 @@
  * You need to set "action" in manifest to use this tool.
  */
 export function updateBadge(text = '', bgColor = 'black', textColor = 'white') {
-	chrome.action.setBadgeText({text})
 	chrome.action.setBadgeBackgroundColor({color: bgColor})
 	chrome.action.setBadgeTextColor({color: textColor})
+	return chrome.action.setBadgeText({text})
 }
 
 /**
