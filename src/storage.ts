@@ -1,30 +1,10 @@
 // ==================== Helpers ====================
-export function getLocalData<T extends Record<string, any>>(): Promise<T>
 export function getLocalData<T extends Record<string, any>>(
-	key: keyof T,
-): Promise<T[typeof key]>
-export function getLocalData<
-	T extends Record<string, any>,
-	K extends readonly (keyof T)[],
->(...keys: K): Promise<{[P in K[number]]: T[P]}>
-export function getLocalData<
-	T extends Record<string, any>,
-	K extends readonly (keyof T)[],
->(...keys: K | [keyof T]): Promise<any> {
+	...keys: (keyof T)[]
+): Promise<Partial<T>> {
 	return new Promise((resolve) => {
-		const query =
-			keys.length === 1 && typeof keys[0] === 'string'
-				? (keys[0] as string)
-				: keys.length
-					? (keys as unknown as string[])
-					: null
-		chrome.storage.local.get(query, (result) => {
-			if (keys.length === 1 && typeof keys[0] === 'string') {
-				resolve(result[keys[0] as string])
-			} else {
-				resolve(result)
-			}
-		})
+		const query = keys.length ? (keys as string[]) : null
+		chrome.storage.local.get(query, (result) => resolve(result as Partial<T>))
 	})
 }
 
@@ -36,32 +16,12 @@ export function saveLocalData<T extends Record<string, any>>(
 	})
 }
 
-export function getSyncData<T extends Record<string, any>>(): Promise<T>
 export function getSyncData<T extends Record<string, any>>(
-	key: keyof T,
-): Promise<T[typeof key]>
-export function getSyncData<
-	T extends Record<string, any>,
-	K extends readonly (keyof T)[],
->(...keys: K): Promise<{[P in K[number]]: T[P]}>
-export function getSyncData<
-	T extends Record<string, any>,
-	K extends readonly (keyof T)[],
->(...keys: K | [keyof T]): Promise<any> {
+	...keys: (keyof T)[]
+): Promise<Partial<T>> {
 	return new Promise((resolve) => {
-		const query =
-			keys.length === 1 && typeof keys[0] === 'string'
-				? (keys[0] as string)
-				: keys.length
-					? (keys as unknown as string[])
-					: null
-		chrome.storage.sync.get(query, (result) => {
-			if (keys.length === 1 && typeof keys[0] === 'string') {
-				resolve(result[keys[0] as string])
-			} else {
-				resolve(result)
-			}
-		})
+		const query = keys.length ? (keys as string[]) : null
+		chrome.storage.sync.get(query, (result) => resolve(result as Partial<T>))
 	})
 }
 
@@ -75,6 +35,7 @@ export function saveSyncData<T extends Record<string, any>>(
 
 // ==================== Classes ====================
 abstract class BaseStorage<T extends Record<string, any>> {
+	abstract get(): Promise<T>
 	abstract get<K extends readonly (keyof T)[]>(
 		...keys: K
 	): Promise<{[P in K[number]]: T[P]}>
@@ -86,11 +47,12 @@ abstract class BaseStorage<T extends Record<string, any>> {
 export class LocalStorage<
 	T extends Record<string, any>,
 > extends BaseStorage<T> {
+	async get(): Promise<T>
 	async get<K extends readonly (keyof T)[]>(
 		...keys: K
-	): Promise<{[P in K[number]]: T[P]}> {
-		if (keys.length === 0) return getLocalData<T>()
-		return getLocalData<T, K>(...keys)
+	): Promise<{[P in K[number]]: T[P]}>
+	async get(...keys: (keyof T)[]): Promise<any> {
+		return getLocalData<T>(...keys)
 	}
 
 	async set(data: Partial<T>): Promise<void> {
@@ -100,22 +62,21 @@ export class LocalStorage<
 	onChange(callback: (changes: Partial<T>) => void) {
 		chrome.storage.onChanged.addListener((changes, areaName) => {
 			if (areaName !== 'local') return
-
 			const relevant: Partial<T> = {}
-			for (const key in changes) {
+			for (const key in changes)
 				relevant[key as keyof T] = changes[key].newValue
-			}
 			if (Object.keys(relevant).length) callback(relevant)
 		})
 	}
 }
 
 export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
+	async get(): Promise<T>
 	async get<K extends readonly (keyof T)[]>(
 		...keys: K
-	): Promise<{[P in K[number]]: T[P]}> {
-		if (keys.length === 0) return getSyncData<T>()
-		return getSyncData<T, K>(...keys)
+	): Promise<{[P in K[number]]: T[P]}>
+	async get(...keys: (keyof T)[]): Promise<any> {
+		return getSyncData<T>(...keys)
 	}
 
 	async set(data: Partial<T>): Promise<void> {
@@ -125,11 +86,9 @@ export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
 	onChange(callback: (changes: Partial<T>) => void) {
 		chrome.storage.onChanged.addListener((changes, areaName) => {
 			if (areaName !== 'sync') return
-
 			const relevant: Partial<T> = {}
-			for (const key in changes) {
+			for (const key in changes)
 				relevant[key as keyof T] = changes[key].newValue
-			}
 			if (Object.keys(relevant).length) callback(relevant)
 		})
 	}
