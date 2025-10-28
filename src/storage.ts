@@ -75,37 +75,22 @@ export function saveSyncData<T extends Record<string, any>>(
 
 // ==================== Classes ====================
 abstract class BaseStorage<T extends Record<string, any>> {
-	abstract get(): Promise<T> // ✅ new overload
-	abstract get<K extends keyof T>(key: K): Promise<T[K]>
 	abstract get<K extends readonly (keyof T)[]>(
 		...keys: K
 	): Promise<{[P in K[number]]: T[P]}>
-	abstract set(data: Partial<T>): Promise<void>
 
+	abstract set(data: Partial<T>): Promise<void>
 	abstract onChange(callback: (changes: Partial<T>) => void): void
 }
 
-/**
- * You'll need "storage" permission to use this.
- *
- * Keep in mind chrome.storage is not available in offscreen documents.
- */
 export class LocalStorage<
 	T extends Record<string, any>,
 > extends BaseStorage<T> {
-	async get(): Promise<T>
-	async get<K extends keyof T>(key: K): Promise<T[K]>
 	async get<K extends readonly (keyof T)[]>(
 		...keys: K
-	): Promise<{[P in K[number]]: T[P]}>
-	async get(...keys: (keyof T)[]): Promise<any> {
-		if (keys.length === 0) {
-			return getLocalData<T>() // all local data
-		}
-		if (keys.length === 1) {
-			return getLocalData<T>(keys[0])
-		}
-		return getLocalData<T, typeof keys>(...keys)
+	): Promise<{[P in K[number]]: T[P]}> {
+		if (keys.length === 0) return getLocalData<T>()
+		return getLocalData<T, K>(...keys)
 	}
 
 	async set(data: Partial<T>): Promise<void> {
@@ -120,33 +105,17 @@ export class LocalStorage<
 			for (const key in changes) {
 				relevant[key as keyof T] = changes[key].newValue
 			}
-
-			if (Object.keys(relevant).length > 0) {
-				callback(relevant)
-			}
+			if (Object.keys(relevant).length) callback(relevant)
 		})
 	}
 }
 
-/**
- * You'll need "storage" permission to use this.
- *
- * Keep in mind chrome.storage is not available in offscreen documents.
- */
 export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
-	async get(): Promise<T>
-	async get<K extends keyof T>(key: K): Promise<T[K]>
 	async get<K extends readonly (keyof T)[]>(
 		...keys: K
-	): Promise<{[P in K[number]]: T[P]}>
-	async get(...keys: (keyof T)[]): Promise<any> {
-		if (keys.length === 0) {
-			return getSyncData<T>() // all sync data
-		}
-		if (keys.length === 1) {
-			return getSyncData<T>(keys[0])
-		}
-		return getSyncData<T, typeof keys>(...keys)
+	): Promise<{[P in K[number]]: T[P]}> {
+		if (keys.length === 0) return getSyncData<T>()
+		return getSyncData<T, K>(...keys)
 	}
 
 	async set(data: Partial<T>): Promise<void> {
@@ -161,10 +130,7 @@ export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
 			for (const key in changes) {
 				relevant[key as keyof T] = changes[key].newValue
 			}
-
-			if (Object.keys(relevant).length > 0) {
-				callback(relevant)
-			}
+			if (Object.keys(relevant).length) callback(relevant)
 		})
 	}
 }
