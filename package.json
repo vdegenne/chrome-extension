@@ -56,8 +56,8 @@
 		"./lib/"
 	],
 	"devDependencies": {
-		"@types/chrome": "^0.1.12",
-		"typescript": "^5.9.2",
+		"@types/chrome": "^0.1.32",
+		"typescript": "^5.9.3",
 		"wireit": "^0.14.12"
 	},
 	"wireit": {

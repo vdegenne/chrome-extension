@@ -30,7 +30,7 @@ interface InstallSidePanelOptions {
 /**
  * You need to use "sidePanel" permission to use this.
  *
- * If you are going to set `action` option to true (to make the action icon interactable.)
+ * If you set `action` option to true (to make the action icon interactable.)
  * You also need to add the following in your manifest:
  *
  * ```json
@@ -39,14 +39,19 @@ interface InstallSidePanelOptions {
  * }
  * ````
  *
- * If you are using `filter` option, you need "tabs" permission and
- * also remove the following from your manifest:
- * ```json
- * "side_panel": {
- *   "default_path": "/documents/sidepanel/dist/index.html"
- * }
- * ```
- * or else the side panel will stay open everywhere.
+ * From here you have two options:
+ *
+ * - Use a global sidepanel:
+ *
+ *   Just add "side_panel" field in the manifest to specify the location of the side panel (e.g. /documents/sidepanel/dist/index.html)
+ *
+ *
+ * - Use a site-specific sidepanels:
+ *
+ *     - You need "tabs" permission for this option.
+ *     - Use `filter` option to specify the sites.
+ *     - Do not forget to remove "side_panel" field in the manifest.
+ *
  */
 export function installSidePanel(options?: Partial<InstallSidePanelOptions>) {
 	const _options: InstallSidePanelOptions = {
@@ -58,10 +63,11 @@ export function installSidePanel(options?: Partial<InstallSidePanelOptions>) {
 
 	if (_options.action) {
 		// This safe to use without "tabs" permission, tab.id is public
-		chrome.action.onClicked.addListener((tab) => {
-			if (tab.id === undefined) return
-			chrome.sidePanel.open({tabId: tab.id}).catch(console.error)
-		})
+		// chrome.action.onClicked.addListener((tab) => {
+		// 	if (tab.id === undefined) return
+		// 	chrome.sidePanel.open({tabId: tab.id}).catch(console.error)
+		// })
+		chrome.sidePanel.setPanelBehavior({openPanelOnActionClick: true})
 	}
 
 	if (_options.filter !== undefined && _options.filter.length) {

@@ -35,6 +35,7 @@ export function saveSyncData<T extends Record<string, any>>(
 
 // ==================== Classes ====================
 abstract class BaseStorage<T extends Record<string, any>> {
+	/** return undefined for values not found or not yet defined */
 	abstract get(): Promise<T>
 	abstract get<K extends readonly (keyof T)[]>(
 		...keys: K
@@ -64,7 +65,7 @@ export class LocalStorage<
 			if (areaName !== 'local') return
 			const relevant: Partial<T> = {}
 			for (const key in changes)
-				relevant[key as keyof T] = changes[key].newValue
+				(relevant[key as keyof T] as any) = changes[key].newValue
 			if (Object.keys(relevant).length) callback(relevant)
 		})
 	}
@@ -88,7 +89,7 @@ export class SyncStorage<T extends Record<string, any>> extends BaseStorage<T> {
 			if (areaName !== 'sync') return
 			const relevant: Partial<T> = {}
 			for (const key in changes)
-				relevant[key as keyof T] = changes[key].newValue
+				(relevant[key as keyof T] as any) = changes[key].newValue
 			if (Object.keys(relevant).length) callback(relevant)
 		})
 	}
