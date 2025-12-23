@@ -1,5 +1,6 @@
 /**
  * You need "offscreen" permission to use this tool.
+ * @deprecated Use offscreen manager instead.
  */
 export async function ensureOffscreenDocument(
 	options: {

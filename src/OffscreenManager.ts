@@ -21,6 +21,9 @@ interface OffScreenManagerOptions {
 	justification: string
 }
 
+/**
+ * Reminder: You can't use chrome.commands.onCommand in offscreen documents.
+ */
 export class OffScreenManager {
 	#opts: OffScreenManagerOptions
 
